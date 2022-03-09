@@ -18,6 +18,10 @@ spec:
   rootDeviceHints:
     deviceName: "/dev/sda"
   bmc:
+  #  HP iLO 4/5
+  ## address: redfish-virtualmedia://192.168.190.225/redfish/v1/Systems/1
+  #  Dell DRAC 8/9
+  ## address: idrac-virtualmedia+https://192.168.190.225/redfish/v1/Systems/System.Embedded.1
     address: idrac-virtualmedia+https://192.168.190.225/redfish/v1/Systems/System.Embedded.1
     credentialsName: bmc-drac-secret-mec
     disableCertificateVerification: true
