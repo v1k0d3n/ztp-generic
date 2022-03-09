@@ -1,0 +1,11 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterImageSet
+metadata:
+  name: openshift-v4.7.36
+  namespace: open-cluster-management
+  labels:
+    visible: 'true'
+    app: ocp-releases
+    app.kubernetes.io/part-of: ocp-releases
+spec:
+  releaseImage: quay.io/openshift-release-dev/ocp-release:4.7.36-x86_64
