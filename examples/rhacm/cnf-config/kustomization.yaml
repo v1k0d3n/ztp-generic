@@ -1,0 +1,4 @@
+bases:
+- sites/ztp-sno15/acm-app/
+resources:
+- groups/sno/policy-sriov48-sno.yaml

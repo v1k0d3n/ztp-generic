@@ -1,0 +1,4 @@
+resources:
+- config-x520.yaml
+- netdevice-eno1.yaml
+- vfio-eno2.yaml

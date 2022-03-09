@@ -1,0 +1,19 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: x520-2
+  namespace: openshift-sriov-network-operator
+spec:
+  deviceType: vfio-pci
+  isRdma: false
+  linkType: eth
+  mtu: 1500
+  nicSelector:
+    pfNames: ["eno2"]
+    vendor: "8086"
+    deviceID: "10fb"
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+  numVfs: 8
+  priority: 10 
+  resourceName: x520_2

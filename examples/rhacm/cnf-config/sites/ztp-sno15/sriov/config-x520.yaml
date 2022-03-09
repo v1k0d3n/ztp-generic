@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unsupported-nic-ids
+  namespace: openshift-sriov-network-operator
+data:
+  x520-1: 8086 154d 10fb
+  x520-2: 8086 154d 10fb
