@@ -14,5 +14,5 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/master: ""
   numVfs: 8
-  priority: 10 
+  priority: 10
   resourceName: x520_1
