@@ -1,0 +1,6 @@
+resources:
+- cluster-deployments-app.yaml
+- cnf-operators-configs-app.yaml
+- cnf-operators-deployment-app.yaml
+- local-placementrule.yaml
+- ocp-releases-app.yaml
