@@ -1,0 +1,23 @@
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: sno-ztp-sno15
+  namespace: ztp-sno15
+  labels:
+    infraenvs.agent-install.openshift.io: "ztp-sno15"
+  annotations:
+    inspect.metal3.io: disabled
+    bmac.agent-install.openshift.io/hostname: "ztp-sno15"
+spec:
+  online: true
+  bootMACAddress: 24:6E:96:19:D2:A0
+  automatedCleaningMode: metadata
+  # rootDeviceHints:
+  #   hctl: "0:2:0:0"
+  rootDeviceHints:
+    deviceName: "/dev/sda"
+  bmc:
+    address: idrac-virtualmedia+https://192.168.190.225/redfish/v1/Systems/System.Embedded.1
+    credentialsName: bmc-drac-secret-mec
+    disableCertificateVerification: true

@@ -1,0 +1,27 @@
+---
+apiVersion: extensions.hive.openshift.io/v1beta1
+kind: AgentClusterInstall
+metadata:
+  name: ztp-sno15
+  namespace: ztp-sno15
+  annotations:
+    agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"}}'
+spec:
+#  NOTE: To use a 3rd party CNI like Calico or Cilium, use the appropriate configmap as manifestsConfigMapRef (below)
+#  manifestsConfigMapRef:
+#    name: [calico-cni-deployment,cilium-cni-deployment]
+  clusterDeploymentRef:
+    name: ztp-sno15
+  imageSetRef:
+    name: openshift-v4.9.8
+  networking:
+    clusterNetwork:
+      - cidr: "10.128.0.0/14"
+        hostPrefix: 23
+    serviceNetwork:
+      - "172.30.0.0/16"
+    machineNetwork:
+      - cidr: "192.168.156.0/24"
+  provisionRequirements:
+    controlPlaneAgents: 1
+  sshPublicKey: "PUT_SSH_PUB_HERE"

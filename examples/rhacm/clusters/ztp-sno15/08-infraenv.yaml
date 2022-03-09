@@ -1,0 +1,28 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: ztp-sno15
+  namespace: ztp-sno15
+  annotations:
+    argocd.argoproj.io/sync-options: Validate=false
+spec:
+#  proxy:
+#    httpProxy: <proxy>
+#    httpsProxy: <proxy>
+#    noProxy: <domain-or-ips-comma-sepparated>
+#  additionalNTPSources:
+#    - 0.rhel.pool.ntp.org
+  clusterRef:
+    name: ztp-sno15
+    namespace: ztp-sno15
+  sshAuthorizedKey: 'PUT_SSH_PUB_HERE'
+  agentLabelSelector:
+    matchLabels:
+      cluster-name: ztp-sno15
+  pullSecretRef:
+    name: ai-pull-secret-mec
+  nmStateConfigLabelSelector:
+    matchLabels:
+      cluster-name: ztp-sno15
+# User for modify ignition during discovery
+#  ignitionConfigOverride: ''

@@ -1,0 +1,52 @@
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  name: ztp-sno15
+  namespace: ztp-sno15
+  labels:
+    cluster-name: ztp-sno15
+spec:
+  config:
+    interfaces:
+      - name: eno1
+        type: ethernet
+        state: up
+        ipv4:
+          enabled: true
+          address:
+            - ip: 192.168.156.150
+              prefix-length: 24
+          dhcp: false
+        ipv6:
+          enabled: false
+      - name: eno2
+        type: ethernet
+        state: down
+      - name: eno3
+        type: ethernet
+        state: down
+      - name: eno4
+        type: ethernet
+        state: down
+    dns-resolver:
+      config:
+        search:
+          - ztp.dfw.ocp.run
+        server:
+          - 192.168.116.100
+    routes:
+      config:
+        - destination: 0.0.0.0/0
+          next-hop-address: 192.168.156.1
+          next-hop-interface: eno1
+          table-id: 254
+  interfaces:
+    - name: "eno1"
+      macAddress: "24:6E:96:19:D2:A0"
+    - name: "eno2"
+      macAddress: "24:6E:96:19:D2:A2"
+    - name: "eno3"
+      macAddress: "24:6E:96:19:D2:A4"
+    - name: "eno4"
+      macAddress: "24:6E:96:19:D2:A5"

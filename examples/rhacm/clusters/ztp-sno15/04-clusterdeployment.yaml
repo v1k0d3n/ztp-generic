@@ -1,0 +1,24 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterDeployment
+metadata:
+  name: ztp-sno15
+  namespace: ztp-sno15
+spec:
+  baseDomain: ztp.dfw.ocp.run
+  clusterName: ztp-sno15
+  controlPlaneConfig:
+    servingCertificates: {}
+  installed: false
+  clusterInstallRef:
+    group: extensions.hive.openshift.io
+    kind: AgentClusterInstall
+    # aci == AgentClusterInstall
+    name: ztp-sno15
+    version: v1beta1
+  platform:
+    agentBareMetal:
+      agentSelector:
+        matchLabels:
+          cluster-name: "ztp-sno15"
+  pullSecretRef:
+    name: ai-pull-secret-mec

@@ -1,0 +1,4000 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: calico-cni-deployment
+  namespace: ztp-sno15
+data:
+  00-namespace-tigera-operator.yaml: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: tigera-operator
+      annotations:
+        openshift.io/node-selector: ""
+      labels:
+        name: tigera-operator
+        openshift.io/run-level: "0"
+  01-cr-apiserver.yaml: |
+    apiVersion: operator.tigera.io/v1
+    kind: APIServer
+    metadata:
+      name: default
+    spec: {}
+  01-cr-installation.yaml: |
+    apiVersion: operator.tigera.io/v1
+    kind: Installation
+    metadata:
+      name: default
+    spec:
+      variant: Calico
+  01-crd-apiserver.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: apiservers.operator.tigera.io
+      annotations:
+        helm.sh/hook: crd-install
+    spec:
+      group: operator.tigera.io
+      names:
+        kind: APIServer
+        listKind: APIServerList
+        plural: apiservers
+        singular: apiserver
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                type: object
+              status:
+                description:
+                properties:
+                  state:
+                    description:
+                    type: string
+                type: object
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+  01-crd-imageset.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.3.0
+      name: imagesets.operator.tigera.io
+    spec:
+      group: operator.tigera.io
+      names:
+        kind: ImageSet
+        listKind: ImageSetList
+        plural: imagesets
+        singular: imageset
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  images:
+                    description:
+                    items:
+                      properties:
+                        digest:
+                          description:
+                          type: string
+                        image:
+                          description:
+                          type: string
+                      required:
+                      - digest
+                      - image
+                      type: object
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  01-crd-installation.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.3.0
+      name: installations.operator.tigera.io
+    spec:
+      group: operator.tigera.io
+      names:
+        kind: Installation
+        listKind: InstallationList
+        plural: installations
+        singular: installation
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  calicoNetwork:
+                    description:
+                    properties:
+                      bgp:
+                        description:
+                        enum:
+                        - Enabled
+                        - Disabled
+                        type: string
+                      containerIPForwarding:
+                        description:
+                        enum:
+                        - Enabled
+                        - Disabled
+                        type: string
+                      hostPorts:
+                        description:
+                        enum:
+                        - Enabled
+                        - Disabled
+                        type: string
+                      ipPools:
+                        description:
+                        items:
+                          properties:
+                            blockSize:
+                              description:
+                              format: int32
+                              type: integer
+                            cidr:
+                              description:
+                              type: string
+                            encapsulation:
+                              description:
+                              enum:
+                              - IPIPCrossSubnet
+                              - IPIP
+                              - VXLAN
+                              - VXLANCrossSubnet
+                              - None
+                              type: string
+                            natOutgoing:
+                              description:
+                              enum:
+                              - Enabled
+                              - Disabled
+                              type: string
+                            nodeSelector:
+                              description:
+                              type: string
+                          required:
+                          - cidr
+                          type: object
+                        type: array
+                      linuxDataplane:
+                        description:
+                        enum:
+                        - Iptables
+                        - BPF
+                        type: string
+                      mtu:
+                        description:
+                        format: int32
+                        type: integer
+                      multiInterfaceMode:
+                        description:
+                        enum:
+                        - None
+                        - Multus
+                        type: string
+                      nodeAddressAutodetectionV4:
+                        description:
+                        properties:
+                          canReach:
+                            description:
+                            type: string
+                          cidrs:
+                            description:
+                            items:
+                              type: string
+                            type: array
+                          firstFound:
+                            description:
+                            type: boolean
+                          interface:
+                            description:
+                            type: string
+                          skipInterface:
+                            description:
+                            type: string
+                        type: object
+                      nodeAddressAutodetectionV6:
+                        description:
+                        properties:
+                          canReach:
+                            description:
+                            type: string
+                          cidrs:
+                            description:
+                            items:
+                              type: string
+                            type: array
+                          firstFound:
+                            description:
+                            type: boolean
+                          interface:
+                            description:
+                            type: string
+                          skipInterface:
+                            description:
+                            type: string
+                        type: object
+                    type: object
+                  certificateManagement:
+                    description:
+                    properties:
+                      caCert:
+                        description:
+                        format: byte
+                        type: string
+                      keyAlgorithm:
+                        description:
+                        enum:
+                        - ""
+                        - RSAWithSize2048
+                        - RSAWithSize4096
+                        - RSAWithSize8192
+                        - ECDSAWithCurve256
+                        - ECDSAWithCurve384
+                        - ECDSAWithCurve521
+                        type: string
+                      signatureAlgorithm:
+                        description:
+                        enum:
+                        - ""
+                        - SHA256WithRSA
+                        - SHA384WithRSA
+                        - SHA512WithRSA
+                        - ECDSAWithSHA256
+                        - ECDSAWithSHA384
+                        - ECDSAWithSHA512
+                        type: string
+                      signerName:
+                        description:
+                        type: string
+                    required:
+                    - caCert
+                    - signerName
+                    type: object
+                  cni:
+                    description:
+                    properties:
+                      ipam:
+                        description:
+                        properties:
+                          type:
+                            description:
+                            enum:
+                            - Calico
+                            - HostLocal
+                            - AmazonVPC
+                            - AzureVNET
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      type:
+                        description:
+                        enum:
+                        - Calico
+                        - GKE
+                        - AmazonVPC
+                        - AzureVNET
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  componentResources:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        componentName:
+                          description:
+                          enum:
+                          - Node
+                          - Typha
+                          - KubeControllers
+                          type: string
+                        resourceRequirements:
+                          description:
+                          properties:
+                            limits:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              description:
+                              type: object
+                            requests:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              description:
+                              type: object
+                          type: object
+                      required:
+                      - componentName
+                      - resourceRequirements
+                      type: object
+                    type: array
+                  controlPlaneNodeSelector:
+                    additionalProperties:
+                      type: string
+                    description:
+                    type: object
+                  controlPlaneReplicas:
+                    description:
+                    format: int32
+                    type: integer
+                  controlPlaneTolerations:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        effect:
+                          description:
+                          type: string
+                        key:
+                          description:
+                          type: string
+                        operator:
+                          description:
+                          type: string
+                        tolerationSeconds:
+                          description:
+                          format: int64
+                          type: integer
+                        value:
+                          description:
+                          type: string
+                      type: object
+                    type: array
+                  flexVolumePath:
+                    description:
+                    type: string
+                  imagePath:
+                    description:
+                    type: string
+                  imagePrefix:
+                    description:
+                    type: string
+                  imagePullSecrets:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        name:
+                          description:
+                          type: string
+                      type: object
+                    type: array
+                  kubernetesProvider:
+                    description:
+                    enum:
+                    - ""
+                    - EKS
+                    - GKE
+                    - AKS
+                    - OpenShift
+                    - DockerEnterprise
+                    type: string
+                  nodeMetricsPort:
+                    description:
+                    format: int32
+                    type: integer
+                  nodeUpdateStrategy:
+                    description:
+                    properties:
+                      rollingUpdate:
+                        description:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            description:
+                            x-kubernetes-int-or-string: true
+                        type: object
+                      type:
+                        description:
+                        type: string
+                    type: object
+                  nonPrivileged:
+                    description:
+                    type: string
+                  registry:
+                    description:
+                    type: string
+                  typhaAffinity:
+                    description:
+                    properties:
+                      nodeAffinity:
+                        description:
+                        properties:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                            description:
+                            items:
+                              description:
+                              properties:
+                                preference:
+                                  description:
+                                  properties:
+                                    matchExpressions:
+                                      description:
+                                      items:
+                                        description:
+                                        properties:
+                                          key:
+                                            description:
+                                            type: string
+                                          operator:
+                                            description:
+                                            type: string
+                                          values:
+                                            description:
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                    matchFields:
+                                      description:
+                                      items:
+                                        description:
+                                        properties:
+                                          key:
+                                            description:
+                                            type: string
+                                          operator:
+                                            description:
+                                            type: string
+                                          values:
+                                            description:
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                  type: object
+                                weight:
+                                  description:
+                                  format: int32
+                                  type: integer
+                              required:
+                              - preference
+                              - weight
+                              type: object
+                            type: array
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                            description:
+                            properties:
+                              nodeSelectorTerms:
+                                description:
+                                items:
+                                  description:
+                                  properties:
+                                    matchExpressions:
+                                      description:
+                                      items:
+                                        description:
+                                        properties:
+                                          key:
+                                            description:
+                                            type: string
+                                          operator:
+                                            description:
+                                            type: string
+                                          values:
+                                            description:
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                    matchFields:
+                                      description:
+                                      items:
+                                        description:
+                                        properties:
+                                          key:
+                                            description:
+                                            type: string
+                                          operator:
+                                            description:
+                                            type: string
+                                          values:
+                                            description:
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                  type: object
+                                type: array
+                            required:
+                            - nodeSelectorTerms
+                            type: object
+                        type: object
+                    type: object
+                  typhaMetricsPort:
+                    description:
+                    format: int32
+                    type: integer
+                  variant:
+                    description:
+                    enum:
+                    - Calico
+                    - TigeraSecureEnterprise
+                    type: string
+                type: object
+              status:
+                description:
+                properties:
+                  computed:
+                    description:
+                    properties:
+                      calicoNetwork:
+                        description:
+                        properties:
+                          bgp:
+                            description:
+                            enum:
+                            - Enabled
+                            - Disabled
+                            type: string
+                          containerIPForwarding:
+                            description:
+                            enum:
+                            - Enabled
+                            - Disabled
+                            type: string
+                          hostPorts:
+                            description:
+                            enum:
+                            - Enabled
+                            - Disabled
+                            type: string
+                          ipPools:
+                            description:
+                            items:
+                              properties:
+                                blockSize:
+                                  description:
+                                  format: int32
+                                  type: integer
+                                cidr:
+                                  description:
+                                  type: string
+                                encapsulation:
+                                  description:
+                                  enum:
+                                  - IPIPCrossSubnet
+                                  - IPIP
+                                  - VXLAN
+                                  - VXLANCrossSubnet
+                                  - None
+                                  type: string
+                                natOutgoing:
+                                  description:
+                                  enum:
+                                  - Enabled
+                                  - Disabled
+                                  type: string
+                                nodeSelector:
+                                  description:
+                                  type: string
+                              required:
+                              - cidr
+                              type: object
+                            type: array
+                          linuxDataplane:
+                            description:
+                            enum:
+                            - Iptables
+                            - BPF
+                            type: string
+                          mtu:
+                            description:
+                            format: int32
+                            type: integer
+                          multiInterfaceMode:
+                            description:
+                            enum:
+                            - None
+                            - Multus
+                            type: string
+                          nodeAddressAutodetectionV4:
+                            description:
+                            properties:
+                              canReach:
+                                description:
+                                type: string
+                              cidrs:
+                                description:
+                                items:
+                                  type: string
+                                type: array
+                              firstFound:
+                                description:
+                                type: boolean
+                              interface:
+                                description:
+                                type: string
+                              skipInterface:
+                                description:
+                                type: string
+                            type: object
+                          nodeAddressAutodetectionV6:
+                            description:
+                            properties:
+                              canReach:
+                                description:
+                                type: string
+                              cidrs:
+                                description:
+                                items:
+                                  type: string
+                                type: array
+                              firstFound:
+                                description:
+                                type: boolean
+                              interface:
+                                description:
+                                type: string
+                              skipInterface:
+                                description:
+                                type: string
+                            type: object
+                        type: object
+                      certificateManagement:
+                        description:
+                        properties:
+                          caCert:
+                            description:
+                            format: byte
+                            type: string
+                          keyAlgorithm:
+                            description:
+                            enum:
+                            - ""
+                            - RSAWithSize2048
+                            - RSAWithSize4096
+                            - RSAWithSize8192
+                            - ECDSAWithCurve256
+                            - ECDSAWithCurve384
+                            - ECDSAWithCurve521
+                            type: string
+                          signatureAlgorithm:
+                            description:
+                            enum:
+                            - ""
+                            - SHA256WithRSA
+                            - SHA384WithRSA
+                            - SHA512WithRSA
+                            - ECDSAWithSHA256
+                            - ECDSAWithSHA384
+                            - ECDSAWithSHA512
+                            type: string
+                          signerName:
+                            description:
+                            type: string
+                        required:
+                        - caCert
+                        - signerName
+                        type: object
+                      cni:
+                        description:
+                        properties:
+                          ipam:
+                            description:
+                            properties:
+                              type:
+                                description:
+                                enum:
+                                - Calico
+                                - HostLocal
+                                - AmazonVPC
+                                - AzureVNET
+                                type: string
+                            required:
+                            - type
+                            type: object
+                          type:
+                            description:
+                            enum:
+                            - Calico
+                            - GKE
+                            - AmazonVPC
+                            - AzureVNET
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      componentResources:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            componentName:
+                              description:
+                              enum:
+                              - Node
+                              - Typha
+                              - KubeControllers
+                              type: string
+                            resourceRequirements:
+                              description:
+                              properties:
+                                limits:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description:
+                                  type: object
+                                requests:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description:
+                                  type: object
+                              type: object
+                          required:
+                          - componentName
+                          - resourceRequirements
+                          type: object
+                        type: array
+                      controlPlaneNodeSelector:
+                        additionalProperties:
+                          type: string
+                        description:
+                        type: object
+                      controlPlaneReplicas:
+                        description:
+                        format: int32
+                        type: integer
+                      controlPlaneTolerations:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            effect:
+                              description:
+                              type: string
+                            key:
+                              description:
+                              type: string
+                            operator:
+                              description:
+                              type: string
+                            tolerationSeconds:
+                              description:
+                              format: int64
+                              type: integer
+                            value:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                      flexVolumePath:
+                        description:
+                        type: string
+                      imagePath:
+                        description:
+                        type: string
+                      imagePrefix:
+                        description:
+                        type: string
+                      imagePullSecrets:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            name:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                      kubernetesProvider:
+                        description:
+                        enum:
+                        - ""
+                        - EKS
+                        - GKE
+                        - AKS
+                        - OpenShift
+                        - DockerEnterprise
+                        type: string
+                      nodeMetricsPort:
+                        description:
+                        format: int32
+                        type: integer
+                      nodeUpdateStrategy:
+                        description:
+                        properties:
+                          rollingUpdate:
+                            description:
+                            properties:
+                              maxUnavailable:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                description:
+                                x-kubernetes-int-or-string: true
+                            type: object
+                          type:
+                            description:
+                            type: string
+                        type: object
+                      nonPrivileged:
+                        description:
+                        type: string
+                      registry:
+                        description:
+                        type: string
+                      typhaAffinity:
+                        description:
+                        properties:
+                          nodeAffinity:
+                            description:
+                            properties:
+                              preferredDuringSchedulingIgnoredDuringExecution:
+                                description:
+                                items:
+                                  description:
+                                  properties:
+                                    preference:
+                                      description:
+                                      properties:
+                                        matchExpressions:
+                                          description:
+                                          items:
+                                            description:
+                                            properties:
+                                              key:
+                                                description:
+                                                type: string
+                                              operator:
+                                                description:
+                                                type: string
+                                              values:
+                                                description:
+                                                items:
+                                                  type: string
+                                                type: array
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                        matchFields:
+                                          description:
+                                          items:
+                                            description:
+                                            properties:
+                                              key:
+                                                description:
+                                                type: string
+                                              operator:
+                                                description:
+                                                type: string
+                                              values:
+                                                description:
+                                                items:
+                                                  type: string
+                                                type: array
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                      type: object
+                                    weight:
+                                      description:
+                                      format: int32
+                                      type: integer
+                                  required:
+                                  - preference
+                                  - weight
+                                  type: object
+                                type: array
+                              requiredDuringSchedulingIgnoredDuringExecution:
+                                description:
+                                properties:
+                                  nodeSelectorTerms:
+                                    description:
+                                    items:
+                                      description:
+                                      properties:
+                                        matchExpressions:
+                                          description:
+                                          items:
+                                            description:
+                                            properties:
+                                              key:
+                                                description:
+                                                type: string
+                                              operator:
+                                                description:
+                                                type: string
+                                              values:
+                                                description:
+                                                items:
+                                                  type: string
+                                                type: array
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                        matchFields:
+                                          description:
+                                          items:
+                                            description:
+                                            properties:
+                                              key:
+                                                description:
+                                                type: string
+                                              operator:
+                                                description:
+                                                type: string
+                                              values:
+                                                description:
+                                                items:
+                                                  type: string
+                                                type: array
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                      type: object
+                                    type: array
+                                required:
+                                - nodeSelectorTerms
+                                type: object
+                            type: object
+                        type: object
+                      typhaMetricsPort:
+                        description:
+                        format: int32
+                        type: integer
+                      variant:
+                        description:
+                        enum:
+                        - Calico
+                        - TigeraSecureEnterprise
+                        type: string
+                    type: object
+                  imageSet:
+                    description:
+                    type: string
+                  mtu:
+                    description:
+                    format: int32
+                    type: integer
+                  variant:
+                    description:
+                    enum:
+                    - Calico
+                    - TigeraSecureEnterprise
+                    type: string
+                type: object
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  01-crd-tigerastatus.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.3.0
+      name: tigerastatuses.operator.tigera.io
+    spec:
+      group: operator.tigera.io
+      names:
+        kind: TigeraStatus
+        listKind: TigeraStatusList
+        plural: tigerastatuses
+        singular: tigerastatus
+      scope: Cluster
+      versions:
+      - additionalPrinterColumns:
+        - description:
+          jsonPath: .status.conditions[?(@.type=='Available')].status
+          name: Available
+          type: string
+        - description:
+          jsonPath: .status.conditions[?(@.type=='Progressing')].status
+          name: Progressing
+          type: string
+        - description:
+          jsonPath: .status.conditions[?(@.type=='Degraded')].status
+          name: Degraded
+          type: string
+        - description:
+          jsonPath: .status.conditions[?(@.type=='Available')].lastTransitionTime
+          name: Since
+          type: date
+        name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                type: object
+              status:
+                description:
+                properties:
+                  conditions:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        lastTransitionTime:
+                          description:
+                          format: date-time
+                          type: string
+                        message:
+                          description:
+                          type: string
+                        reason:
+                          description:
+                          type: string
+                        status:
+                          description:
+                          type: string
+                        type:
+                          description:
+                          type: string
+                      required:
+                      - lastTransitionTime
+                      - status
+                      - type
+                      type: object
+                    type: array
+                required:
+                - conditions
+                type: object
+            type: object
+        served: true
+        storage: true
+        subresources:
+          status: {}
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  02-configmap-calico-resources.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: calico-resources
+      namespace: tigera-operator
+    data:
+      # To create Calico resources before Calico components are started add
+      # an entry here and the contents of the resource under the entry.
+      # The resources here should all be projectcalico.org/v3.
+      # Multiple resources/entries can be added to this ConfigMap.
+      #
+      # If you need to remove a resource that was added to this ConfigMap
+      # you should remove it from here or else it will be re-created.
+      #
+      # example-global-network-set.yaml: |
+      #   apiVersion: projectcalico.org/v3
+      #   kind: GlobalNetworkSet
+      #   metadata:
+      #     name: a-name-for-the-set
+      #     labels:
+      #       role: external-database
+      #   spec:
+      #     nets:
+      #     - 198.51.100.0/28
+      #     - 203.0.113.0/24
+  02-role-tigera-operator.yaml: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: tigera-operator
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - namespaces
+          - pods
+          - podtemplates
+          - services
+          - endpoints
+          - events
+          - configmaps
+          - secrets
+          - serviceaccounts
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - ""
+        resources:
+          - nodes
+        verbs:
+          - get
+          - patch
+          - list
+          - watch
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - clusterroles
+          - clusterrolebindings
+          - rolebindings
+          - roles
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+          - bind
+          - escalate
+      - apiGroups:
+          - apps
+        resources:
+          - deployments
+          - daemonsets
+          - statefulsets
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - tigera-operator
+        resources:
+          - deployments/finalizers
+        verbs:
+          - update
+      - apiGroups:
+          - operator.tigera.io
+        resources:
+          - '*'
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - patch
+          - delete
+          - watch
+      - apiGroups:
+        - networking.k8s.io
+        resources:
+        - networkpolicies
+        verbs:
+          - create
+          - update
+          - delete
+          - get
+          - list
+          - watch
+      - apiGroups:
+        - crd.projectcalico.org
+        resources:
+        - felixconfigurations
+        verbs:
+        - create
+        - patch
+        - list
+        - get
+        - watch
+      - apiGroups:
+        - crd.projectcalico.org
+        resources:
+        - ippools
+        - kubecontrollersconfigurations
+        verbs:
+        - get
+        - list
+        - watch
+      - apiGroups:
+          - scheduling.k8s.io
+        resources:
+          - priorityclasses
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - policy
+        resources:
+          - poddisruptionbudgets
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - apiregistration.k8s.io
+        resources:
+          - apiservices
+        verbs:
+          - list
+          - watch
+          - create
+          - update
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - config.openshift.io
+        resources:
+          - networks/status
+        verbs:
+          - get
+          - list
+          - update
+      - apiGroups:
+          - config.openshift.io
+        resources:
+          - networks
+          - infrastructures
+        verbs:
+          - get
+          - list
+          - patch
+          - watch
+      - apiGroups:
+          - security.openshift.io
+        resources:
+          - securitycontextconstraints
+        verbs:
+          - create
+          - get
+          - list
+          - update
+          - delete
+          - watch
+      - apiGroups:
+          - security.openshift.io
+        resources:
+          - securitycontextconstraints
+        resourceNames:
+          - hostaccess
+        verbs:
+          - use
+      - apiGroups:
+          - crd.projectcalico.org
+        resources:
+          - bgpconfigurations
+          - bgppeers
+          - felixconfigurations
+          - kubecontrollersconfigurations
+          - globalnetworkpolicies
+          - globalnetworksets
+          - hostendpoints
+          - ippools
+          - networkpolicies
+          - networksets
+        verbs:
+          - create
+      - apiGroups:
+        - crd.projectcalico.org
+        resources:
+          - ipamblocks
+        verbs:
+          - list
+      - apiGroups:
+          - crd.projectcalico.org
+        resources:
+          - clusterinformations
+        verbs:
+          - get
+      - apiGroups:
+          - batch
+        resources:
+          - jobs
+          - cronjobs
+        verbs:
+          - create
+          - update
+          - list
+          - watch
+  02-rolebinding-tigera-operator.yaml: |
+    kind: ClusterRoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: tigera-operator
+    subjects:
+    - kind: ServiceAccount
+      name: tigera-operator
+      namespace: tigera-operator
+    roleRef:
+      kind: ClusterRole
+      name: tigera-operator
+      apiGroup: rbac.authorization.k8s.io
+  02-serviceaccount-tigera-operator.yaml: |
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: tigera-operator
+      namespace: tigera-operator
+  02-tigera-operator.yaml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: tigera-operator
+      namespace: tigera-operator
+      labels:
+        k8s-app: tigera-operator
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          name: tigera-operator
+      template:
+        metadata:
+          labels:
+            name: tigera-operator
+            k8s-app: tigera-operator
+        spec:
+          nodeSelector:
+            kubernetes.io/os: linux
+          tolerations:
+            - effect: NoExecute
+              operator: Exists
+            - effect: NoSchedule
+              operator: Exists
+          serviceAccountName: tigera-operator
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          containers:
+            - name: tigera-operator
+              image: quay.io/tigera/operator:v1.23.5
+              imagePullPolicy: IfNotPresent
+              command:
+                - operator
+              volumeMounts:
+                - name: var-lib-calico
+                  readOnly: true
+                  mountPath: /var/lib/calico
+              env:
+                - name: WATCH_NAMESPACE
+                  value: ""
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: "tigera-operator"
+                - name: TIGERA_OPERATOR_INIT_IMAGE_VERSION
+                  value: v1.23.5
+              envFrom:
+                - configMapRef:
+                    name: kubernetes-services-endpoint
+                    optional: true
+          volumes:
+            - name: var-lib-calico
+              hostPath:
+                path: /var/lib/calico
+            - name: calico-resources
+              configMap:
+                defaultMode: 0400
+                name: calico-resources
+            - name: install-resources-script
+              configMap:
+                defaultMode: 0777
+                name: install-resources-script
+          initContainers:
+            - name: create-initial-resources
+              image: docker.io/calico/ctl:v3.21.4
+              env:
+                - name: DATASTORE_TYPE
+                  value: kubernetes
+              command:
+                - calicoctl
+              args:
+                - --allow-version-mismatch
+                - create
+                - --skip-exists
+                - --skip-empty
+                - -f
+                - /calico-resources
+              volumeMounts:
+                - name: calico-resources
+                  mountPath: /calico-resources
+  crd.projectcalico.org_bgpconfigurations.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: bgpconfigurations.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: BGPConfiguration
+        listKind: BGPConfigurationList
+        plural: bgpconfigurations
+        singular: bgpconfiguration
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  asNumber:
+                    description:
+                    format: int32
+                    type: integer
+                  communities:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        name:
+                          description:
+                          type: string
+                        value:
+                          description:
+                          pattern: ^(\d+):(\d+)$|^(\d+):(\d+):(\d+)$
+                          type: string
+                      type: object
+                    type: array
+                  listenPort:
+                    description:
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
+                  logSeverityScreen:
+                    description:
+                    type: string
+                  nodeToNodeMeshEnabled:
+                    description:
+                    type: boolean
+                  prefixAdvertisements:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        cidr:
+                          description:
+                          type: string
+                        communities:
+                          description:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  serviceClusterIPs:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        cidr:
+                          type: string
+                      type: object
+                    type: array
+                  serviceExternalIPs:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        cidr:
+                          type: string
+                      type: object
+                    type: array
+                  serviceLoadBalancerIPs:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        cidr:
+                          type: string
+                      type: object
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_bgppeers.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: bgppeers.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: BGPPeer
+        listKind: BGPPeerList
+        plural: bgppeers
+        singular: bgppeer
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  asNumber:
+                    description:
+                    format: int32
+                    type: integer
+                  keepOriginalNextHop:
+                    description:
+                    type: boolean
+                  maxRestartTime:
+                    description:
+                    type: string
+                  node:
+                    description:
+                    type: string
+                  nodeSelector:
+                    description:
+                    type: string
+                  password:
+                    description:
+                    properties:
+                      secretKeyRef:
+                        description:
+                        properties:
+                          key:
+                            description:
+                            type: string
+                          name:
+                            description:
+                            type: string
+                          optional:
+                            description:
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                    type: object
+                  peerIP:
+                    description:
+                    type: string
+                  peerSelector:
+                    description:
+                    type: string
+                  sourceAddress:
+                    description:
+                    type: string
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_blockaffinities.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: blockaffinities.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: BlockAffinity
+        listKind: BlockAffinityList
+        plural: blockaffinities
+        singular: blockaffinity
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  cidr:
+                    type: string
+                  deleted:
+                    description:
+                    type: string
+                  node:
+                    type: string
+                  state:
+                    type: string
+                required:
+                - cidr
+                - deleted
+                - node
+                - state
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_caliconodestatuses.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: (devel)
+      creationTimestamp: null
+      name: caliconodestatuses.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: CalicoNodeStatus
+        listKind: CalicoNodeStatusList
+        plural: caliconodestatuses
+        singular: caliconodestatus
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  classes:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                  node:
+                    description:
+                    type: string
+                  updatePeriodSeconds:
+                    description:
+                    format: int32
+                    type: integer
+                type: object
+              status:
+                description:
+                properties:
+                  agent:
+                    description:
+                    properties:
+                      birdV4:
+                        description:
+                        properties:
+                          lastBootTime:
+                            description:
+                            type: string
+                          lastReconfigurationTime:
+                            description:
+                            type: string
+                          routerID:
+                            description:
+                            type: string
+                          state:
+                            description:
+                            type: string
+                          version:
+                            description:
+                            type: string
+                        type: object
+                      birdV6:
+                        description:
+                        properties:
+                          lastBootTime:
+                            description:
+                            type: string
+                          lastReconfigurationTime:
+                            description:
+                            type: string
+                          routerID:
+                            description:
+                            type: string
+                          state:
+                            description:
+                            type: string
+                          version:
+                            description:
+                            type: string
+                        type: object
+                    type: object
+                  bgp:
+                    description:
+                    properties:
+                      numberEstablishedV4:
+                        description:
+                        type: integer
+                      numberEstablishedV6:
+                        description:
+                        type: integer
+                      numberNotEstablishedV4:
+                        description:
+                        type: integer
+                      numberNotEstablishedV6:
+                        description:
+                        type: integer
+                      peersV4:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            peerIP:
+                              description:
+                              type: string
+                            since:
+                              description:
+                              type: string
+                            state:
+                              description:
+                              type: string
+                            type:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                      peersV6:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            peerIP:
+                              description:
+                              type: string
+                            since:
+                              description:
+                              type: string
+                            state:
+                              description:
+                              type: string
+                            type:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                    required:
+                    - numberEstablishedV4
+                    - numberEstablishedV6
+                    - numberNotEstablishedV4
+                    - numberNotEstablishedV6
+                    type: object
+                  lastUpdated:
+                    description:
+                    format: date-time
+                    nullable: true
+                    type: string
+                  routes:
+                    description:
+                    properties:
+                      routesV4:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            destination:
+                              description:
+                              type: string
+                            gateway:
+                              description:
+                              type: string
+                            interface:
+                              description:
+                              type: string
+                            learnedFrom:
+                              description:
+                              properties:
+                                peerIP:
+                                  description:
+                                  type: string
+                                sourceType:
+                                  description:
+                                  type: string
+                              type: object
+                            type:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                      routesV6:
+                        description:
+                        items:
+                          description:
+                          properties:
+                            destination:
+                              description:
+                              type: string
+                            gateway:
+                              description:
+                              type: string
+                            interface:
+                              description:
+                              type: string
+                            learnedFrom:
+                              description:
+                              properties:
+                                peerIP:
+                                  description:
+                                  type: string
+                                sourceType:
+                                  description:
+                                  type: string
+                              type: object
+                            type:
+                              description:
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_clusterinformations.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: clusterinformations.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: ClusterInformation
+        listKind: ClusterInformationList
+        plural: clusterinformations
+        singular: clusterinformation
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  calicoVersion:
+                    description:
+                    type: string
+                  clusterGUID:
+                    description:
+                    type: string
+                  clusterType:
+                    description:
+                    type: string
+                  datastoreReady:
+                    description:
+                    type: boolean
+                  variant:
+                    description:
+                    type: string
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_felixconfigurations.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: felixconfigurations.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: FelixConfiguration
+        listKind: FelixConfigurationList
+        plural: felixconfigurations
+        singular: felixconfiguration
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  allowIPIPPacketsFromWorkloads:
+                    description:
+                    type: boolean
+                  allowVXLANPacketsFromWorkloads:
+                    description:
+                    type: boolean
+                  awsSrcDstCheck:
+                    description:
+                    enum:
+                    - DoNothing
+                    - Enable
+                    - Disable
+                    type: string
+                  bpfConnectTimeLoadBalancingEnabled:
+                    description:
+                    type: boolean
+                  bpfDataIfacePattern:
+                    description:
+                    type: string
+                  bpfDisableUnprivileged:
+                    description:
+                    type: boolean
+                  bpfEnabled:
+                    description:
+                    type: boolean
+                  bpfExtToServiceConnmark:
+                    description:
+                    type: integer
+                  bpfExternalServiceMode:
+                    description:
+                    type: string
+                  bpfKubeProxyEndpointSlicesEnabled:
+                    description:
+                    type: boolean
+                  bpfKubeProxyIptablesCleanupEnabled:
+                    description:
+                    type: boolean
+                  bpfKubeProxyMinSyncPeriod:
+                    description:
+                    type: string
+                  bpfLogLevel:
+                    description:
+                    type: string
+                  chainInsertMode:
+                    description:
+                    type: string
+                  dataplaneDriver:
+                    type: string
+                  debugDisableLogDropping:
+                    type: boolean
+                  debugMemoryProfilePath:
+                    type: string
+                  debugSimulateCalcGraphHangAfter:
+                    type: string
+                  debugSimulateDataplaneHangAfter:
+                    type: string
+                  defaultEndpointToHostAction:
+                    description:
+                    type: string
+                  deviceRouteProtocol:
+                    description:
+                    type: integer
+                  deviceRouteSourceAddress:
+                    description:
+                    type: string
+                  disableConntrackInvalidCheck:
+                    type: boolean
+                  endpointReportingDelay:
+                    type: string
+                  endpointReportingEnabled:
+                    type: boolean
+                  externalNodesList:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                  failsafeInboundHostPorts:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        net:
+                          type: string
+                        port:
+                          type: integer
+                        protocol:
+                          type: string
+                      required:
+                      - port
+                      - protocol
+                      type: object
+                    type: array
+                  failsafeOutboundHostPorts:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        net:
+                          type: string
+                        port:
+                          type: integer
+                        protocol:
+                          type: string
+                      required:
+                      - port
+                      - protocol
+                      type: object
+                    type: array
+                  featureDetectOverride:
+                    description:
+                    type: string
+                  genericXDPEnabled:
+                    description:
+                    type: boolean
+                  healthEnabled:
+                    type: boolean
+                  healthHost:
+                    type: string
+                  healthPort:
+                    type: integer
+                  interfaceExclude:
+                    description:
+                    type: string
+                  interfacePrefix:
+                    description:
+                    type: string
+                  interfaceRefreshInterval:
+                    description:
+                    type: string
+                  ipipEnabled:
+                    type: boolean
+                  ipipMTU:
+                    description:
+                    type: integer
+                  ipsetsRefreshInterval:
+                    description:
+                    type: string
+                  iptablesBackend:
+                    description:
+                    type: string
+                  iptablesFilterAllowAction:
+                    type: string
+                  iptablesLockFilePath:
+                    description:
+                    type: string
+                  iptablesLockProbeInterval:
+                    description:
+                    type: string
+                  iptablesLockTimeout:
+                    description:
+                    type: string
+                  iptablesMangleAllowAction:
+                    type: string
+                  iptablesMarkMask:
+                    description:
+                    format: int32
+                    type: integer
+                  iptablesNATOutgoingInterfaceFilter:
+                    type: string
+                  iptablesPostWriteCheckInterval:
+                    description:
+                    type: string
+                  iptablesRefreshInterval:
+                    description:
+                    type: string
+                  ipv6Support:
+                    type: boolean
+                  kubeNodePortRanges:
+                    description:
+                    items:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^.*
+                      x-kubernetes-int-or-string: true
+                    type: array
+                  logFilePath:
+                    description:
+                    type: string
+                  logPrefix:
+                    description:
+                    type: string
+                  logSeverityFile:
+                    description:
+                    type: string
+                  logSeverityScreen:
+                    description:
+                    type: string
+                  logSeveritySys:
+                    description:
+                    type: string
+                  maxIpsetSize:
+                    type: integer
+                  metadataAddr:
+                    description:
+                    type: string
+                  metadataPort:
+                    description:
+                    type: integer
+                  mtuIfacePattern:
+                    description:
+                    type: string
+                  natOutgoingAddress:
+                    description:
+                    type: string
+                  natPortRange:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description:
+                    pattern: ^.*
+                    x-kubernetes-int-or-string: true
+                  netlinkTimeout:
+                    type: string
+                  openstackRegion:
+                    description:
+                    type: string
+                  policySyncPathPrefix:
+                    description:
+                    type: string
+                  prometheusGoMetricsEnabled:
+                    description:
+                    type: boolean
+                  prometheusMetricsEnabled:
+                    description:
+                    type: boolean
+                  prometheusMetricsHost:
+                    description:
+                    type: string
+                  prometheusMetricsPort:
+                    description:
+                    type: integer
+                  prometheusProcessMetricsEnabled:
+                    description:
+                    type: boolean
+                  prometheusWireGuardMetricsEnabled:
+                    description:
+                    type: boolean
+                  removeExternalRoutes:
+                    description:
+                    type: boolean
+                  reportingInterval:
+                    description:
+                    type: string
+                  reportingTTL:
+                    description:
+                    type: string
+                  routeRefreshInterval:
+                    description:
+                    type: string
+                  routeSource:
+                    description:
+                    type: string
+                  routeTableRange:
+                    description:
+                    properties:
+                      max:
+                        type: integer
+                      min:
+                        type: integer
+                    required:
+                    - max
+                    - min
+                    type: object
+                  serviceLoopPrevention:
+                    description:
+                    type: string
+                  sidecarAccelerationEnabled:
+                    description:
+                    type: boolean
+                  usageReportingEnabled:
+                    description:
+                    type: boolean
+                  usageReportingInitialDelay:
+                    description:
+                    type: string
+                  usageReportingInterval:
+                    description:
+                    type: string
+                  useInternalDataplaneDriver:
+                    type: boolean
+                  vxlanEnabled:
+                    type: boolean
+                  vxlanMTU:
+                    description:
+                    type: integer
+                  vxlanPort:
+                    type: integer
+                  vxlanVNI:
+                    type: integer
+                  wireguardEnabled:
+                    description:
+                    type: boolean
+                  wireguardHostEncryptionEnabled:
+                    description:
+                    type: boolean
+                  wireguardInterfaceName:
+                    description:
+                    type: string
+                  wireguardListeningPort:
+                    description:
+                    type: integer
+                  wireguardMTU:
+                    description:
+                    type: integer
+                  wireguardRoutingRulePriority:
+                    description:
+                    type: integer
+                  xdpEnabled:
+                    description:
+                    type: boolean
+                  xdpRefreshInterval:
+                    description:
+                    type: string
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_globalnetworkpolicies.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: globalnetworkpolicies.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: GlobalNetworkPolicy
+        listKind: GlobalNetworkPolicyList
+        plural: globalnetworkpolicies
+        singular: globalnetworkpolicy
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                properties:
+                  applyOnForward:
+                    description:
+                    type: boolean
+                  doNotTrack:
+                    description:
+                    type: boolean
+                  egress:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        action:
+                          type: string
+                        destination:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                        http:
+                          description:
+                          properties:
+                            methods:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            paths:
+                              description:
+                              items:
+                                description:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        icmp:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        ipVersion:
+                          description:
+                          type: integer
+                        metadata:
+                          description:
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description:
+                              type: object
+                          type: object
+                        notICMP:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        notProtocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        protocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        source:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                      required:
+                      - action
+                      type: object
+                    type: array
+                  ingress:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        action:
+                          type: string
+                        destination:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                                field.
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                        http:
+                          description:
+                          properties:
+                            methods:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            paths:
+                              description:
+                              items:
+                                description:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        icmp:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        ipVersion:
+                          description:
+                          type: integer
+                        metadata:
+                          description:
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description:
+                              type: object
+                          type: object
+                        notICMP:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        notProtocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        protocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        source:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                      required:
+                      - action
+                      type: object
+                    type: array
+                  namespaceSelector:
+                    description:
+                    type: string
+                  order:
+                    description:
+                    type: number
+                  preDNAT:
+                    description:
+                    type: boolean
+                  selector:
+                    description:
+                    type: string
+                  serviceAccountSelector:
+                    description:
+                    type: string
+                  types:
+                    description:
+                    items:
+                      description:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_globalnetworksets.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: globalnetworksets.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: GlobalNetworkSet
+        listKind: GlobalNetworkSetList
+        plural: globalnetworksets
+        singular: globalnetworkset
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                  resource.
+                properties:
+                  nets:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_hostendpoints.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: hostendpoints.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: HostEndpoint
+        listKind: HostEndpointList
+        plural: hostendpoints
+        singular: hostendpoint
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                  resource.
+                properties:
+                  expectedIPs:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                  interfaceName:
+                    description:
+                    type: string
+                  node:
+                    description:
+                    type: string
+                  ports:
+                    description:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        port:
+                          type: integer
+                        protocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                      required:
+                      - name
+                      - port
+                      - protocol
+                      type: object
+                    type: array
+                  profiles:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_ipamblocks.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: ipamblocks.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: IPAMBlock
+        listKind: IPAMBlockList
+        plural: ipamblocks
+        singular: ipamblock
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                  resource.
+                properties:
+                  affinity:
+                    type: string
+                  allocations:
+                    items:
+                      type: integer
+                      nullable: true
+                    type: array
+                  attributes:
+                    items:
+                      properties:
+                        handle_id:
+                          type: string
+                        secondary:
+                          additionalProperties:
+                            type: string
+                          type: object
+                      type: object
+                    type: array
+                  cidr:
+                    type: string
+                  deleted:
+                    type: boolean
+                  strictAffinity:
+                    type: boolean
+                  unallocated:
+                    items:
+                      type: integer
+                    type: array
+                required:
+                - allocations
+                - attributes
+                - cidr
+                - strictAffinity
+                - unallocated
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_ipamconfigs.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: ipamconfigs.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: IPAMConfig
+        listKind: IPAMConfigList
+        plural: ipamconfigs
+        singular: ipamconfig
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                  resource.
+                properties:
+                  autoAllocateBlocks:
+                    type: boolean
+                  maxBlocksPerHost:
+                    description:
+                    type: integer
+                  strictAffinity:
+                    type: boolean
+                required:
+                - autoAllocateBlocks
+                - strictAffinity
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_ipamhandles.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: ipamhandles.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: IPAMHandle
+        listKind: IPAMHandleList
+        plural: ipamhandles
+        singular: ipamhandle
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  block:
+                    additionalProperties:
+                      type: integer
+                    type: object
+                  deleted:
+                    type: boolean
+                  handleID:
+                    type: string
+                required:
+                - block
+                - handleID
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_ippools.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: ippools.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: IPPool
+        listKind: IPPoolList
+        plural: ippools
+        singular: ippool
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  allowedUses:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                  blockSize:
+                    description:
+                    type: integer
+                  cidr:
+                    description:
+                    type: string
+                  disabled:
+                    description:
+                    type: boolean
+                  disableBGPExport:
+                    description:
+                    type: boolean
+                  ipip:
+                    description:
+                    properties:
+                      enabled:
+                        description:
+                        type: boolean
+                      mode:
+                        description:
+                        type: string
+                    type: object
+                  ipipMode:
+                    description:
+                    type: string
+                  nat-outgoing:
+                    description:
+                    type: boolean
+                  natOutgoing:
+                    description:
+                    type: boolean
+                  nodeSelector:
+                    description:
+                    type: string
+                  vxlanMode:
+                    description:
+                    type: string
+                required:
+                - cidr
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_ipreservations.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: ipreservations.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: IPReservation
+        listKind: IPReservationList
+        plural: ipreservations
+        singular: ipreservation
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                  resource.
+                properties:
+                  reservedCIDRs:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_kubecontrollersconfigurations.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: kubecontrollersconfigurations.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: KubeControllersConfiguration
+        listKind: KubeControllersConfigurationList
+        plural: kubecontrollersconfigurations
+        singular: kubecontrollersconfiguration
+      scope: Cluster
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  controllers:
+                    description:
+                    properties:
+                      namespace:
+                        description:
+                        properties:
+                          reconcilerPeriod:
+                            description:
+                            type: string
+                        type: object
+                      node:
+                        description:
+                        properties:
+                          hostEndpoint:
+                            description:
+                            properties:
+                              autoCreate:
+                                description:
+                                type: string
+                            type: object
+                          leakGracePeriod:
+                            description:
+                            type: string
+                          reconcilerPeriod:
+                            description:
+                            type: string
+                          syncLabels:
+                            description:
+                            type: string
+                        type: object
+                      policy:
+                        description:
+                        properties:
+                          reconcilerPeriod:
+                            description:
+                            type: string
+                        type: object
+                      serviceAccount:
+                        description:
+                        properties:
+                          reconcilerPeriod:
+                            description:
+                            type: string
+                        type: object
+                      workloadEndpoint:
+                        description:
+                        properties:
+                          reconcilerPeriod:
+                            description:
+                            type: string
+                        type: object
+                    type: object
+                  etcdV3CompactionPeriod:
+                    description:
+                    type: string
+                  healthChecks:
+                    description:
+                    type: string
+                  logSeverityScreen:
+                    description:
+                    type: string
+                  prometheusMetricsPort:
+                    description:
+                    type: integer
+                required:
+                - controllers
+                type: object
+              status:
+                description:
+                properties:
+                  environmentVars:
+                    additionalProperties:
+                      type: string
+                    description:
+                    type: object
+                  runningConfig:
+                    description:
+                    properties:
+                      controllers:
+                        description:
+                        properties:
+                          namespace:
+                            description:
+                            properties:
+                              reconcilerPeriod:
+                                description:
+                                type: string
+                            type: object
+                          node:
+                            description:
+                            properties:
+                              hostEndpoint:
+                                description:
+                                properties:
+                                  autoCreate:
+                                    description:
+                                    type: string
+                                type: object
+                              leakGracePeriod:
+                                description:
+                                type: string
+                              reconcilerPeriod:
+                                description:
+                                type: string
+                              syncLabels:
+                                description:
+                                type: string
+                            type: object
+                          policy:
+                            description:
+                            properties:
+                              reconcilerPeriod:
+                                description:
+                                type: string
+                            type: object
+                          serviceAccount:
+                            description:
+                            properties:
+                              reconcilerPeriod:
+                                description:
+                                type: string
+                            type: object
+                          workloadEndpoint:
+                            description:
+                            properties:
+                              reconcilerPeriod:
+                                description:
+                                type: string
+                            type: object
+                        type: object
+                      etcdV3CompactionPeriod:
+                        description:
+                        type: string
+                      healthChecks:
+                        description:
+                        type: string
+                      logSeverityScreen:
+                        description:
+                        type: string
+                      prometheusMetricsPort:
+                        description:
+                        type: integer
+                    required:
+                    - controllers
+                    type: object
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_networkpolicies.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: networkpolicies.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: NetworkPolicy
+        listKind: NetworkPolicyList
+        plural: networkpolicies
+        singular: networkpolicy
+      scope: Namespaced
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                properties:
+                  egress:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        action:
+                          type: string
+                        destination:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                        http:
+                          description:
+                          properties:
+                            methods:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            paths:
+                              description:
+                              items:
+                                description:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        icmp:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        ipVersion:
+                          description:
+                          type: integer
+                        metadata:
+                          description:
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description:
+                              type: object
+                          type: object
+                        notICMP:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        notProtocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        protocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        source:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                      required:
+                      - action
+                      type: object
+                    type: array
+                  ingress:
+                    description:
+                    items:
+                      description:
+                      properties:
+                        action:
+                          type: string
+                        destination:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                        http:
+                          description:
+                          properties:
+                            methods:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            paths:
+                              description:
+                              items:
+                                description:
+                                properties:
+                                  exact:
+                                    type: string
+                                  prefix:
+                                    type: string
+                                type: object
+                              type: array
+                          type: object
+                        icmp:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        ipVersion:
+                          description:
+                          type: integer
+                        metadata:
+                          description:
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description:
+                              type: object
+                          type: object
+                        notICMP:
+                          description:
+                          properties:
+                            code:
+                              description:
+                              type: integer
+                            type:
+                              description:
+                              type: integer
+                          type: object
+                        notProtocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                            field.
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        protocol:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description:
+                          pattern: ^.*
+                          x-kubernetes-int-or-string: true
+                        source:
+                          description:
+                          properties:
+                            namespaceSelector:
+                              description:
+                              type: string
+                            nets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notNets:
+                              description:
+                              items:
+                                type: string
+                              type: array
+                            notPorts:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            notSelector:
+                              description:
+                              type: string
+                            ports:
+                              description:
+                              items:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^.*
+                                x-kubernetes-int-or-string: true
+                              type: array
+                            selector:
+                              description:
+                              type: string
+                            serviceAccounts:
+                              description:
+                              properties:
+                                names:
+                                  description:
+                                  items:
+                                    type: string
+                                  type: array
+                                selector:
+                                  description:
+                                  type: string
+                              type: object
+                            services:
+                              description:
+                              properties:
+                                name:
+                                  description:
+                                  type: string
+                                namespace:
+                                  description:
+                                  type: string
+                              type: object
+                          type: object
+                      required:
+                      - action
+                      type: object
+                    type: array
+                  order:
+                    description:
+                    type: number
+                  selector:
+                    description:
+                    type: string
+                  serviceAccountSelector:
+                    description:
+                    type: string
+                  types:
+                    description:
+                    items:
+                      description:
+                        Types field.
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  crd.projectcalico.org_networksets.yaml: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: networksets.crd.projectcalico.org
+    spec:
+      group: crd.projectcalico.org
+      names:
+        kind: NetworkSet
+        listKind: NetworkSetList
+        plural: networksets
+        singular: networkset
+      scope: Namespaced
+      versions:
+      - name: v1
+        schema:
+          openAPIV3Schema:
+            description:
+            properties:
+              apiVersion:
+                description:
+                type: string
+              kind:
+                description:
+                type: string
+              metadata:
+                type: object
+              spec:
+                description:
+                properties:
+                  nets:
+                    description:
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        served: true
+        storage: true
+    status:
+      acceptedNames:
+        kind: ""
+        plural: ""
+      conditions: []
+      storedVersions: []
+  02-configmap-endpoint-tigera-operator.yaml: |
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: kubernetes-services-endpoint
+      namespace: tigera-operator
+    data:
+      KUBERNETES_SERVICE_HOST: "api.ztp-mec-us-dllstxna.telco.ocp.run"
+      KUBERNETES_SERVICE_PORT: "6443"
