@@ -1,0 +1,191 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-sriov-operator
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-sriov-ns
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude: ["kube-*"]
+            include: ["*"]
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  labels:
+                    kubernetes.io/metadata.name: openshift-sriov-network-operator
+                  annotations:
+                    workload.openshift.io/allowed: management
+                  name: openshift-sriov-network-operator
+                spec: {}
+                status: {}
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-sriov-catalogsource
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude: ["kube-*"]
+            include: ["*"]
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: CatalogSource
+                metadata:
+                  name: sriov48-index
+                  namespace: openshift-marketplace
+                spec:
+                  displayName: Openshift SRIOV Operator 4.8
+                  image: quay.io/alosadag/alosadag-ocp4-index:latest
+                  sourceType: grpc
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-sriov-operatorgroup
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude: ["kube-*"]
+            include: ["*"]
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1
+                kind: OperatorGroup
+                metadata:
+                  name: sriov-network-operators
+                  namespace: openshift-sriov-network-operator
+                spec:
+                  targetNamespaces:
+                  - openshift-sriov-network-operator
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-sriov-subscription
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude: ["kube-*"]
+            include: ["*"]
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  labels:
+                    operators.coreos.com/sriov-network-operator.openshift-sriov-network-operator: ""
+                  name: sriov-network-operator-subscription
+                  namespace: openshift-sriov-network-operator
+                spec:
+                  channel: "4.8"
+                  name: sriov-network-operator
+                  source: sriov48-index
+                  sourceNamespace: openshift-marketplace
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-sriov-icsp
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude: ["kube-*"]
+            include: ["*"]
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operator.openshift.io/v1alpha1
+                kind: ImageContentSourcePolicy
+                metadata:
+                  name: sriov48-icsp
+                spec:
+                  repositoryDigestMirrors:
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-network-webhook
+                    source: registry.redhat.io/openshift4/ose-sriov-network-webhook
+                  - mirrors:
+                    - quay.io/alosadag/rh-osbs-openshift-ose-ptp-operator-bundle
+                    source: registry-proxy.engineering.redhat.com/rh-osbs/openshift-ose-ptp-operator-bundle
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-kube-rbac-proxy
+                    source: registry.redhat.io/openshift4/ose-kube-rbac-proxy
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-network-operator
+                    source: registry.redhat.io/openshift4/ose-sriov-network-operator
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-ptp-operator
+                    source: registry.redhat.io/openshift4/ose-ptp-operator
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-cni
+                    source: registry.redhat.io/openshift4/ose-sriov-cni
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-operator-must-gather
+                    source: registry.redhat.io/openshift4/ose-sriov-operator-must-gather
+                  - mirrors:
+                    - quay.io/alosadag/rh-osbs-openshift-ose-sriov-network-operator-bundle
+                    source: registry-proxy.engineering.redhat.com/rh-osbs/openshift-ose-sriov-network-operator-bundle
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-dp-admission-controller
+                    source: registry.redhat.io/openshift4/ose-sriov-dp-admission-controller
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-infiniband-cni
+                    source: registry.redhat.io/openshift4/ose-sriov-infiniband-cni
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-ptp
+                    source: registry.redhat.io/openshift4/ose-ptp
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-network-device-plugin
+                    source: registry.redhat.io/openshift4/ose-sriov-network-device-plugin
+                  - mirrors:
+                    - quay.io/alosadag/openshift4-ose-sriov-network-config-daemon
+                    source: registry.redhat.io/openshift4/ose-sriov-network-config-daemon
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-sriov
+placementRef:
+  name: placement-policy-sriov
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: policy-sriov-operator
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-sriov
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterJoined
+  clusterSelector:
+    matchExpressions:
+      - {key: sriov, operator: In, values: ["true"]}

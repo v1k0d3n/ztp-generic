@@ -1,0 +1,3 @@
+resources:
+  - pao/policy-pao48.yaml
+  - sriov/policy-sriov48.yaml
