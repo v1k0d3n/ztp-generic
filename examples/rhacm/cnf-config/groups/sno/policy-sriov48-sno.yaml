@@ -16,7 +16,7 @@ spec:
         metadata:
           name: policy-sriov-operatorconfig
         spec:
-          remediationAction: enforce # the policy-template spec.remediationAction is overridden by the preceding parameter value for spec.remediationAction.
+          remediationAction: enforce
           severity: low
           namespaceSelector:
             exclude: ["kube-*"]
@@ -55,7 +55,7 @@ metadata:
 spec:
   clusterConditions:
   - status: "True"
-    type: ManagedClusterJoined 
+    type: ManagedClusterJoined
   clusterSelector:
     matchExpressions:
       - {key: sriov, operator: In, values: ["true"]}
